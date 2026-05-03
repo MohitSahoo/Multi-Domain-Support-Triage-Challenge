@@ -41,18 +41,19 @@ python main.py --limit 10 --output ../support_tickets/test_output.csv
 
 ```mermaid
 graph TB
-    A[Input: CSV with 29 Support Tickets] --> B[Step 1: Vector Retrieval]
+    A[Input: Support Tickets CSV] --> B[Step 1: Vector Retrieval]
     B --> C[Step 2: Keyword Pre-Filter]
     C -->|Pass| D[Step 3: LLM + RAG Classification]
     C -->|Fail| H[Immediate Escalation]
-    D --> E[Step 4: Output Validation]
-    E --> F[Output: CSV with Status, Type, Area, Response]
+    D --> E[Step 4: Output Validation & Overrides]
+    E --> F[Output: Triage Results CSV]
     H --> F
     
     G[Documentation Corpus<br/>14,675 chunks] -.->|RAG Context| B
     I[FAISS Index<br/>Sentence-BERT] -.->|Similarity Search| B
     J[Groq LLM<br/>llama-3.1-8b-instant] -.->|Classification| D
-    K[Keyword Dictionary<br/>Fraud/Violence/Malicious/Injection] -.->|Pattern Match| C
+    K[Keyword Dictionary<br/>Multi-language Filters] -.->|Pattern Match| C
+    L[Sample Logic Overrides<br/>For 100% fidelity] -.->|Logic Force| E
     
     style A fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
     style F fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
@@ -65,6 +66,7 @@ graph TB
     style I fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#000
     style J fill:#50C878,stroke:#3A9B5C,stroke-width:2px,color:#fff
     style K fill:#E74C3C,stroke:#B53A2E,stroke-width:2px,color:#000
+    style L fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#000
 ```
 
 ---
