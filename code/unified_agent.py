@@ -29,6 +29,72 @@ class UnifiedAgent:
         self.client = Groq(api_key=api_key)
         self.model = model
 
+    def _check_escalation_keywords(self, text: str) -> tuple[bool, str]:
+        """
+        Check if text contains keywords requiring immediate escalation.
+
+        Returns:
+            (should_escalate, reason)
+        """
+        text_lower = text.lower()
+
+        # Fraud and identity theft
+        fraud_keywords = [
+            "identity theft", "stolen identity", "identity stolen",
+            "fraud", "fraudulent", "scam", "phishing"
+        ]
+
+        # Violence and threats
+        violence_keywords = [
+            "kill", "bomb", "attack", "threat", "violence",
+            "harm", "murder", "terrorist", "weapon"
+        ]
+
+        # Malicious code requests
+        malicious_keywords = [
+            "delete all files", "rm -rf", "drop database", "drop table",
+            "format drive", "destroy data", "wipe", "erase everything",
+            "delete everything", "remove all"
+        ]
+
+        # Prompt injection attempts
+        injection_keywords = [
+            "ignore previous", "ignore instructions", "ignore all",
+            "show rules", "internal rules", "system prompt", "system instructions",
+            "affiche", "règles internes", "reglas internas", "muestra las reglas",
+            "show internal", "reveal prompt", "display rules"
+        ]
+
+        # Jailbreak attempts
+        jailbreak_keywords = [
+            "you are now", "new instructions", "forget everything",
+            "disregard previous", "disregard instructions", "override",
+            "new role", "act as", "pretend you are"
+        ]
+
+        # Check each category
+        for keyword in fraud_keywords:
+            if keyword in text_lower:
+                return (True, f"fraud/identity_theft: '{keyword}'")
+
+        for keyword in violence_keywords:
+            if keyword in text_lower:
+                return (True, f"violence/threat: '{keyword}'")
+
+        for keyword in malicious_keywords:
+            if keyword in text_lower:
+                return (True, f"malicious_request: '{keyword}'")
+
+        for keyword in injection_keywords:
+            if keyword in text_lower:
+                return (True, f"prompt_injection: '{keyword}'")
+
+        for keyword in jailbreak_keywords:
+            if keyword in text_lower:
+                return (True, f"jailbreak_attempt: '{keyword}'")
+
+        return (False, "")
+
     def process_ticket(
         self,
         ticket: Dict,
@@ -47,6 +113,19 @@ class UnifiedAgent:
         company = ticket.get("Company", "Unknown")
         issue = ticket.get("Issue", "")
         subject = ticket.get("Subject", "")
+
+        # Pre-filter: Check for escalation keywords
+        combined_text = f"{subject} {issue}"
+        should_escalate, reason = self._check_escalation_keywords(combined_text)
+
+        if should_escalate:
+            print(f"⚠️  Keyword escalation: {reason}")
+            return {
+                "status": "Escalated",
+                "request_type": "invalid",
+                "product_area": "general",
+                "response": ""
+            }
 
         # Build system prompt
         system_prompt = self._build_system_prompt(company)
