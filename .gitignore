@@ -1,0 +1,58 @@
+# secrets
+.env
+.env.local
+*.pem
+*.key
+
+# deps
+node_modules/
+.pnpm-store/
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# build
+dist/
+build/
+*.tsbuildinfo
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/
+Thumbs.db
+
+# local data / caches the participant may create
+data/index/
+data/embeddings/
+*.sqlite
+*.db
+
+# submission artifacts
+*.zip
+
+# vector store caches
+.cache/
+.chroma_db/
+.faiss_db/
+code/.cache/
+code/.chroma_db/
+code/.faiss_db/
+
+# logs
+*.log
+log.txt
+
+# temporary files
+*.tmp
+*.bak
+*~
+
+#md files
+evalutation_criteria.md
+INTERVIEW_PREP.md
+
