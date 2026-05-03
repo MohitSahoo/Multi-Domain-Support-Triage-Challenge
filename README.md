@@ -50,91 +50,14 @@ graph TB
     G[FAISS Index<br/>Sentence-BERT] -.->|Similarity Search| B
     H[Groq LLM<br/>llama-3.1-8b-instant] -.->|Classification| C
     
-    style A fill:#e1f5ff
-    style E fill:#e1f5ff
-    style F fill:#fff4e1
-    style G fill:#fff4e1
-    style H fill:#ffe1f5
-```
-
-### Detailed Pipeline
-
-```mermaid
-flowchart TD
-    Start([Support Ticket CSV]) --> Load[Load Ticket Data]
-    Load --> VectorRetrieval[Vector Retrieval]
-    
-    subgraph Step1 [Step 1: Vector Retrieval]
-        VectorRetrieval --> Encode[Encode Query with Sentence-BERT]
-        Encode --> Search[Search FAISS Index<br/>14,675 chunks]
-        Search --> Filter[Filter by Company]
-        Filter --> TopK[Return Top-3 Chunks<br/>Min Similarity: 0.2]
-    end
-    
-    TopK --> Agent[Unified Agent]
-    
-    subgraph Step2 [Step 2: Unified Agent]
-        Agent --> SystemPrompt[Build System Prompt<br/>Reply-first rules<br/>Company-specific areas]
-        SystemPrompt --> UserPrompt[Build User Prompt<br/>Ticket + RAG Context]
-        UserPrompt --> LLM[Groq LLM Call<br/>llama-3.1-8b-instant<br/>Temperature: 0<br/>Max Tokens: 1500]
-        LLM --> JSON[Parse JSON Response]
-        JSON --> Retry{Success?}
-        Retry -->|No| Backoff[Exponential Backoff<br/>1s, 2s, 4s]
-        Backoff --> LLM
-        Retry -->|Yes| Validate[Validate Output]
-    end
-    
-    Validate --> Output
-    
-    subgraph Step3 [Step 3: Output Validation]
-        Output --> NormalizeStatus[Normalize Status<br/>Replied/Escalated]
-        NormalizeStatus --> NormalizeType[Normalize Request Type<br/>product_issue/bug/feature_request/invalid]
-        NormalizeType --> NormalizeArea[Normalize Product Area<br/>Company-specific validation]
-        NormalizeArea --> ClearResponse[Clear Response if Escalated]
-    end
-    
-    ClearResponse --> Save[Save to CSV]
-    Save --> End([Output CSV])
-    
-    style Step1 fill:#e3f2fd
-    style Step2 fill:#f3e5f5
-    style Step3 fill:#e8f5e9
-```
-
-### Component Architecture
-
-```mermaid
-graph LR
-    subgraph VectorStore [Vector Store - vector_store.py]
-        A1[Sentence-BERT Encoder<br/>all-MiniLM-L6-v2<br/>384 dimensions]
-        A2[FAISS Index<br/>IndexFlatIP<br/>Cosine Similarity]
-        A3[Chunk Metadata<br/>14,675 chunks<br/>500 chars + 100 overlap]
-        A1 --> A2
-        A2 --> A3
-    end
-    
-    subgraph UnifiedAgent [Unified Agent - unified_agent.py]
-        B1[Groq Client<br/>llama-3.1-8b-instant]
-        B2[Prompt Builder<br/>System + User Prompts]
-        B3[Output Validator<br/>JSON Parser + Normalizer]
-        B2 --> B1
-        B1 --> B3
-    end
-    
-    subgraph MainPipeline [Main Pipeline - main.py]
-        C1[CSV Processor<br/>Batch Size: 5]
-        C2[Retry Logic<br/>Exponential Backoff]
-        C3[Memory Manager<br/>Garbage Collection]
-        C1 --> C2
-        C2 --> C3
-    end
-    
-    VectorStore --> UnifiedAgent
-    UnifiedAgent --> MainPipeline
-    
-    style VectorStore fill:#e1f5ff
-    style UnifiedAgent fill:#ffe1f5
-    style MainPipeline fill:#e8f5e9
+    style A fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    style E fill:#4A90E2,stroke:#2E5C8A,stroke-width:3px,color:#fff
+    style B fill:#7B68EE,stroke:#4B3A9E,stroke-width:2px,color:#fff
+    style C fill:#7B68EE,stroke:#4B3A9E,stroke-width:2px,color:#fff
+    style D fill:#7B68EE,stroke:#4B3A9E,stroke-width:2px,color:#fff
+    style F fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#000
+    style G fill:#F39C12,stroke:#C87F0A,stroke-width:2px,color:#000
+    style H fill:#E74C3C,stroke:#B53A2E,stroke-width:2px,color:#fff
 ```
 
 ---
